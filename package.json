@@ -1,0 +1,9 @@
+{
+  "name": "temperature-pwa",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "serve": "node scripts/serve.js"
+  }
+}
+
