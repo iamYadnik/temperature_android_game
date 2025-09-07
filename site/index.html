@@ -1,0 +1,56 @@
+<!doctype html>
+<!--
+Testing checklist
+- Desktop Chrome: Button appears, prompts install, appinstalled fires, button hides afterward
+- Desktop Firefox: No prompt → fallback instructions show, Open Game works
+- Android Chrome: Button appears, installs, opens standalone from home screen
+- iOS Safari: Shows instructions (Share → Add to Home Screen), Open Game works
+- In standalone (display-mode: standalone), landing page hides the button
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Temperature Card Game — an offline-first PWA you can install and play on any device." />
+    <title>Temperature Card Game</title>
+    <meta property="og:title" content="Temperature Card Game" />
+    <meta property="og:description" content="Installable, offline-first PWA. Play on mobile or desktop." />
+    <meta property="og:image" content="./imgs/og.png" />
+    <meta property="og:type" content="website" />
+    <link rel="canonical" href="https://example.com/" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <h1>Temperature Card Game</h1>
+      <p class="lead">An installable, offline-first PWA. Drop identical ranks, draw one, and call Show at the right moment.</p>
+    </header>
+
+    <main class="container">
+      <div id="cta" class="cta">
+        <button id="open" class="btn">Open Game</button>
+        <button id="install" class="btn primary" hidden>Add to device</button>
+      </div>
+
+      <details id="howto" hidden>
+        <summary>How to install</summary>
+        <ol>
+          <li>Android/Chrome: open menu ⋮ → “Install app”.</li>
+          <li>iPhone/iPad (Safari): Share → Add to Home Screen.</li>
+        </ol>
+      </details>
+
+      <section class="preview">
+        <iframe id="gameFrame" src="../temperature/index.html" title="Temperature PWA preview" loading="lazy"></iframe>
+        <div class="preview-actions">
+          <a id="openFull" href="../temperature/index.html" target="_blank" rel="noopener">Open full screen</a>
+        </div>
+      </section>
+    </main>
+
+    <div id="toast" role="status" aria-live="polite" class="toast" hidden>Installed!</div>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+  </html>
+
