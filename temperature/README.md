@@ -56,6 +56,11 @@ The server generates placeholder PNG icons under `temperature/icons/` if missing
   - Ensure the site root serves the `/temperature/` path.
   - Service worker is registered as `./sw.js` and must be served from the same `/temperature/` scope.
 
+## Website Landing
+- A minimal landing website lives under `./site/` with an “Add to device” button and an embedded preview.
+- Root `index.html` redirects to `./site/`.
+- The PWA continues to live under `./temperature/` and its service worker remains scoped there.
+
 ## Updates (PWA)
 - Bump the cache name in `sw.js` (e.g., `temperature-v2`) and redeploy.
 - Users will see a banner: “New version available — Reload”. Clicking it activates the new SW immediately and reloads on `controllerchange`.
@@ -81,4 +86,3 @@ The server generates placeholder PNG icons under `temperature/icons/` if missing
 
 ## License
 MIT
-
