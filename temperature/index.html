@@ -107,10 +107,20 @@
     </div>
 
     <script type="module">
-      import { wireServiceWorkerUpdates } from '/temperature/src/sw-updates.js';
-      import { initUI } from '/temperature/src/ui.js';
-      import { restoreOrInit } from '/temperature/src/app.js';
-      import { initMultiplayer } from '/temperature/src/ui-mp.js';
+      // Guarded bootstrap: if any module import fails, show a helpful toast.
+      const showBootError = (err) => {
+        const n = document.createElement('div');
+        n.setAttribute('role','status');
+        n.style.cssText = 'position:fixed;bottom:12px;left:50%;transform:translateX(-50%);background:#b00020;color:#fff;padding:10px 14px;border-radius:10px;z-index:9999;max-width:90%';
+        n.textContent = 'App failed to load assets. Please refresh. (' + (err?.message||err) + ')';
+        document.body.appendChild(n);
+        console.error('Bootstrap error', err);
+      };
+      try {
+        const { wireServiceWorkerUpdates } = await import('/temperature/src/sw-updates.js');
+        const { initUI } = await import('/temperature/src/ui.js');
+        const { restoreOrInit } = await import('/temperature/src/app.js');
+        const { initMultiplayer } = await import('/temperature/src/ui-mp.js');
 
       // Tabs wiring
       const tabs = [
@@ -138,6 +148,7 @@
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/temperature/sw.js').then(reg => wireServiceWorkerUpdates(reg));
       }
+      } catch (err) { showBootError(err); }
     </script>
   </body>
   </html>
