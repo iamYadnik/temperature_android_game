@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0b0f14" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>Temperature — Card Game</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="app-bar">
+      <h1 aria-label="Temperature Card Game">Temperature</h1>
+      <nav class="tabs" role="tablist" aria-label="Sections">
+        <button id="tab-new" role="tab" aria-controls="panel-new" aria-selected="true" class="tab">New Game</button>
+        <button id="tab-table" role="tab" aria-controls="panel-table" aria-selected="false" class="tab">Table</button>
+        <button id="tab-score" role="tab" aria-controls="panel-score" aria-selected="false" class="tab">Scoreboard</button>
+        <button id="tab-storage" role="tab" aria-controls="panel-storage" aria-selected="false" class="tab">Storage</button>
+      </nav>
+    </header>
+
+    <main>
+      <section id="panel-new" role="tabpanel" aria-labelledby="tab-new">
+        <form id="new-game-form">
+          <fieldset>
+            <legend>Mode</legend>
+            <label><input type="radio" name="mode" value="one" checked /> One-Round</label>
+            <label><input type="radio" name="mode" value="room" /> Room Mode</label>
+          </fieldset>
+          <div class="row">
+            <label>Players (2–6)
+              <input name="players" type="number" min="2" max="6" value="2" />
+            </label>
+            <label>Humans (1–6)
+              <input name="humans" type="number" min="1" max="6" value="1" />
+            </label>
+          </div>
+          <div class="row">
+            <label>Target score (Room)
+              <input name="target" type="number" min="50" step="10" value="150" />
+            </label>
+            <label>Jokers (0)
+              <input name="jokers" type="checkbox" />
+            </label>
+          </div>
+          <div class="row actions">
+            <button id="start-game" type="submit">Start Game</button>
+            <button id="resume-game" type="button">Resume Last Save</button>
+          </div>
+        </form>
+        <p class="hint">Rules: drop cards of the same rank, then draw one. Show only at the start of your turn.</p>
+      </section>
+
+      <section id="panel-table" role="tabpanel" aria-labelledby="tab-table" hidden>
+        <div class="table-top">
+          <div class="piles">
+            <div class="pile" id="deck" aria-label="Deck" tabindex="0">
+              <div class="card back">Deck</div>
+              <div class="count" id="deck-count">0</div>
+            </div>
+            <div class="pile" id="discard" aria-label="Discard" tabindex="0">
+              <div class="card" id="discard-top">—</div>
+              <div class="count" id="discard-count">0</div>
+            </div>
+          </div>
+          <div class="turn" id="turn-banner">Current: —</div>
+        </div>
+
+        <div class="players" id="players"></div>
+
+        <div class="hand" id="hand" aria-label="Your hand" role="group"></div>
+        <div class="controls" aria-label="Turn controls">
+          <button id="btn-drop-deck" disabled title="Drop selection then draw from deck (D)">Drop → Draw Deck</button>
+          <button id="btn-drop-discard" disabled title="Drop selection then draw from discard (F)">Drop → Draw Discard</button>
+          <button id="btn-show" disabled title="Call Show at start of turn (S)">Show</button>
+        </div>
+      </section>
+
+      <section id="panel-score" role="tabpanel" aria-labelledby="tab-score" hidden>
+        <div id="scoreboard"></div>
+        <div class="row actions">
+          <button id="btn-next-round" hidden>Next Round</button>
+          <button id="btn-new-from-score">New Game</button>
+        </div>
+      </section>
+
+      <section id="panel-storage" role="tabpanel" aria-labelledby="tab-storage" hidden>
+        <div id="storage-info">Storage usage: —</div>
+        <div class="row actions">
+          <button id="btn-clear-save">Clear Save</button>
+          <button id="btn-reset-all">Reset All</button>
+        </div>
+      </section>
+    </main>
+
+    <div id="toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
+    <div id="update-toast" role="status" aria-live="polite" aria-atomic="true" hidden>
+      <button id="update-action">New version available — Reload</button>
+    </div>
+
+    <script type="module">
+      import { wireServiceWorkerUpdates } from './src/sw-updates.js';
+      import { initUI } from './src/ui.js';
+      import { restoreOrInit } from './src/app.js';
+
+      // Tabs wiring
+      const tabs = [
+        {tab: 'tab-new', panel: 'panel-new'},
+        {tab: 'tab-table', panel: 'panel-table'},
+        {tab: 'tab-score', panel: 'panel-score'},
+        {tab: 'tab-storage', panel: 'panel-storage'}
+      ];
+      function showPanel(id) {
+        for (const t of tabs) {
+          const is = t.panel === id;
+          document.getElementById(t.tab).setAttribute('aria-selected', String(is));
+          const p = document.getElementById(t.panel);
+          p.hidden = !is;
+        }
+      }
+      tabs.forEach(t => document.getElementById(t.tab).addEventListener('click', () => showPanel(t.panel)));
+
+      // App init
+      initUI({ showPanel });
+      restoreOrInit();
+
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js').then(reg => wireServiceWorkerUpdates(reg));
+      }
+    </script>
+  </body>
+  </html>
+
