@@ -4,6 +4,9 @@ const installBtn = document.getElementById('install');
 const openBtn = document.getElementById('open');
 const howto = document.getElementById('howto');
 const toast = document.getElementById('toast');
+const installCta = document.getElementById('installCta');
+const iosCta = document.getElementById('iosCta');
+const iosDismiss = document.getElementById('iosCtaDismiss');
 
 openBtn.addEventListener('click', () => {
   location.href = '../temperature/index.html';
@@ -20,12 +23,20 @@ window.addEventListener('beforeinstallprompt', (e) => {
   if (!inStandalone && !isIOS) {
     installBtn.hidden = false;
     howto.hidden = true;
+    // Show sticky CTA
+    installCta.hidden = false;
+    installCta.onclick = () => installBtn.click();
   }
 });
 
 if (!inStandalone && isIOS) {
   howto.hidden = false;
   installBtn.hidden = true;
+  // Show iOS sticky banner with dismiss
+  iosCta.hidden = localStorage.getItem('iosCtaDismissed') === '1';
+  iosDismiss?.addEventListener('click', () => {
+    iosCta.hidden = true; localStorage.setItem('iosCtaDismissed','1');
+  });
 }
 
 installBtn.addEventListener('click', async () => {
@@ -34,11 +45,13 @@ installBtn.addEventListener('click', async () => {
   const { outcome } = await deferredPrompt.userChoice;
   deferredPrompt = null;
   installBtn.hidden = true;
+  installCta.hidden = true;
   if (outcome === 'accepted') showToast('Installed!');
 });
 
 window.addEventListener('appinstalled', () => {
   installBtn.hidden = true;
+  installCta.hidden = true;
   showToast('Installed!');
 });
 
@@ -48,4 +61,3 @@ function showToast(msg){
   clearTimeout(showToast._t);
   showToast._t = setTimeout(()=>toast.hidden=true, 2500);
 }
-

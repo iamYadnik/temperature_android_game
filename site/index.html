@@ -49,8 +49,13 @@ Testing checklist
     </main>
 
     <div id="toast" role="status" aria-live="polite" class="toast" hidden>Installed!</div>
+    <!-- Sticky install CTA / iOS banner -->
+    <button id="installCta" class="cta-stick" hidden>Add to device</button>
+    <div id="iosCta" class="cta-stick cta--ios" hidden>
+      <span>On iPhone/iPad: Share → Add to Home Screen</span>
+      <button id="iosCtaDismiss" aria-label="Dismiss" class="cta-dismiss">×</button>
+    </div>
 
     <script type="module" src="./main.js"></script>
   </body>
   </html>
-
