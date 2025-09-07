@@ -16,7 +16,7 @@ export const RANKS = [
   { label: 'K', value: 15 }
 ];
 
-export function buildDeck({ useJokers = false } = {}) {
+export function buildDeck({ useJokers = false, seed = null } = {}) {
   const deck = [];
   // 4 suits x each rank (suits are ignored)
   for (let s = 0; s < 4; s++) {
@@ -29,13 +29,14 @@ export function buildDeck({ useJokers = false } = {}) {
     deck.push({ id: cryptoRandomId(), label: 'Joker', value: 0 });
     deck.push({ id: cryptoRandomId(), label: 'Joker', value: 0 });
   }
-  shuffle(deck);
+  if (seed != null) shuffle(deck, createPRNG(String(seed)));
+  else shuffle(deck);
   return deck;
 }
 
-export function shuffle(arr) {
+export function shuffle(arr, rand=Math.random) {
   for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(rand() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
@@ -73,3 +74,13 @@ export function cryptoRandomId() {
   return a + b;
 }
 
+export function createPRNG(seedStr) {
+  // xorshift32 seeded by hash of string
+  let h = 2166136261 >>> 0;
+  for (let i=0;i<seedStr.length;i++) { h ^= seedStr.charCodeAt(i); h = Math.imul(h, 16777619); }
+  let x = h || 0x9e3779b9;
+  return function() {
+    x ^= x << 13; x ^= x >>> 17; x ^= x << 5; x >>>= 0;
+    return (x & 0xffffffff) / 0x100000000;
+  };
+}

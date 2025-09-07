@@ -5,11 +5,18 @@ import { cpuTurn } from './cpu.js';
 
 let STATE = null;
 let SELECTION = []; // selected card ids for current player
+let NET = { enabled: false, role: null, localId: null, send: null };
 
 export function getState() { return STATE; }
 export function getSelection() { return SELECTION; }
 export function setSelection(arr) { SELECTION = arr; }
-export function isHumanTurn() { return !!STATE?.players[STATE.current]?.human; }
+export function isHumanTurn() {
+  if (!STATE) return false;
+  const cur = STATE.players[STATE.current];
+  if (!cur) return false;
+  if (!NET.enabled) return !!cur.human;
+  return cur.id === NET.localId; // only local-controlled player can act
+}
 
 export async function restoreOrInit() {
   const saved = await loadState();
@@ -60,6 +67,31 @@ export async function startNewGame(cfg) {
   scheduleCpuIfNeeded();
 }
 
+// Host-only: start a network game with provided players and seed
+export async function hostStartNetworkGame({ seed, players, options }) {
+  const cfg = { roomMode: false, targetScore: options?.targetScore || 150, jokers: !!options?.jokers };
+  const plist = players.map((p, i) => ({ id: p.id, name: p.name, human: true, hand: [], score: 0, eliminated: false, pendingShow: false }));
+  const deck = buildDeck({ useJokers: !!cfg.jokers, seed });
+  const discard = [];
+  for (let r = 0; r < 7; r++) for (const p of plist) p.hand.push(deck.pop());
+  discard.push(deck.pop());
+  STATE = { mode: 'one', targetScore: cfg.targetScore, useJokers: !!cfg.jokers, players: plist, deck, discard, current: 0, phase: 'turn-start', round: 1, winner: null, lastScores: null };
+  SELECTION = [];
+  await persist();
+  broadcastState();
+}
+
+// Client: attach to incoming INIT
+export function clientAttachNetwork({ seed, options, players }) {
+  NET.enabled = true; NET.role = 'client';
+  const me = players.find(p => p.name && p.name.length && true); // local identification not known; allow input gated via host updates
+  NET.localId = null; // clients do not act until server assigns (not implemented)
+}
+
+export function attachNet({ role, send }) {
+  NET.enabled = true; NET.role = role; NET.send = send || (t,p)=>window.dispatchEvent(new CustomEvent('net-send',{detail:{t,p}}));
+}
+
 export function canShowNow() {
   if (!STATE) return false;
   return STATE.phase === 'turn-start';
@@ -67,7 +99,16 @@ export function canShowNow() {
 
 export async function performDropAndDraw(draw) {
   const p = STATE.players[STATE.current];
-  if (!p.human) return; // human-only control
+  if (!isHumanTurn()) {
+    if (NET.enabled && NET.role === 'client' && NET.send) {
+      const ids = new Set(SELECTION);
+      const hand = p.hand.filter(c => ids.has(c.id));
+      const label = hand[0]?.label;
+      const count = hand.length;
+      try { NET.send('INTENT', { kind: 'DROP_DRAW', data: { label, count, from: draw } }); toast('Sent move to host'); } catch {}
+    }
+    return;
+  }
   const selection = p.hand.filter(c => SELECTION.includes(c.id));
   if (!selection.length || !canMultiDrop(selection)) {
     toast('Select cards of the same value to drop');
@@ -92,10 +133,17 @@ export async function performDropAndDraw(draw) {
   SELECTION = [];
   // Turn ends
   await advanceTurn();
+  broadcastState();
 }
 
 export async function callShow() {
   if (!canShowNow()) { toast('Show only at start of turn'); return; }
+  if (!isHumanTurn()) {
+    if (NET.enabled && NET.role === 'client' && NET.send) {
+      try { NET.send('INTENT', { kind: 'TRY_SHOW' }); toast('Sent show to host'); } catch {}
+    }
+    return;
+  }
   const callerIdx = STATE.current;
   const totals = STATE.players.map(p => p.eliminated ? Infinity : handTotal(p.hand));
   const callerTotal = totals[callerIdx];
@@ -139,6 +187,7 @@ export async function callShow() {
   }
   STATE.phase = 'round-end';
   await persist();
+  broadcastState();
 }
 
 export async function nextRound() {
@@ -184,6 +233,43 @@ async function persist() {
   await saveState(STATE);
   // trigger UI refresh if needed
 }
+
+function broadcastState() {
+  if (!NET.enabled || NET.role !== 'host' || !NET.send) return;
+  try { NET.send('STATE', { snapshot: STATE }); } catch {}
+}
+
+// Host: handle client intents (minimal support)
+window.__TEMP_handleIntent = async function(intent){
+  if (!NET.enabled || NET.role !== 'host') return;
+  const p = STATE.players[STATE.current];
+  if (!p) return;
+  if (intent?.kind === 'DROP_DRAW') {
+    const { label, count, from } = intent.data || {};
+    // pick first N cards with that label
+    const toDrop = [];
+    for (const c of p.hand) if (c.label === label && toDrop.length < count) toDrop.push(c);
+    if (!toDrop.length || !canMultiDrop(toDrop)) return;
+    for (const c of toDrop) {
+      const idx = p.hand.findIndex(h => h.id === c.id); if (idx>=0) STATE.discard.push(p.hand.splice(idx,1)[0]);
+    }
+    if (from === 'discard') {
+      if (STATE.discard.length > 0) p.hand.push(STATE.discard.pop());
+    } else {
+      if (STATE.deck.length === 0) reshuffle(STATE.deck, STATE.discard);
+      if (STATE.deck.length > 0) p.hand.push(STATE.deck.pop());
+    }
+    await advanceTurn();
+    broadcastState();
+  } else if (intent?.kind === 'TRY_SHOW') {
+    if (!canShowNow()) return;
+    await callShow();
+    broadcastState();
+  }
+};
+
+// Allow replacing state on clients from network
+window.__TEMP_setState = function(s){ STATE = s; };
 
 function scheduleCpuIfNeeded() {
   const p = STATE.players[STATE.current];

@@ -19,6 +19,7 @@
         <button id="tab-table" role="tab" aria-controls="panel-table" aria-selected="false" class="tab">Table</button>
         <button id="tab-score" role="tab" aria-controls="panel-score" aria-selected="false" class="tab">Scoreboard</button>
         <button id="tab-storage" role="tab" aria-controls="panel-storage" aria-selected="false" class="tab">Storage</button>
+        <button id="tab-mp" role="tab" aria-controls="panel-mp" aria-selected="false" class="tab">Multiplayer</button>
       </nav>
     </header>
 
@@ -94,6 +95,10 @@
           <button id="btn-reset-all">Reset All</button>
         </div>
       </section>
+
+      <section id="panel-mp" role="tabpanel" aria-labelledby="tab-mp" hidden>
+        <div id="mp-root" class="mp-root"></div>
+      </section>
     </main>
 
     <div id="toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
@@ -105,13 +110,15 @@
       import { wireServiceWorkerUpdates } from './src/sw-updates.js';
       import { initUI } from './src/ui.js';
       import { restoreOrInit } from './src/app.js';
+      import { initMultiplayer } from './src/ui-mp.js';
 
       // Tabs wiring
       const tabs = [
         {tab: 'tab-new', panel: 'panel-new'},
         {tab: 'tab-table', panel: 'panel-table'},
         {tab: 'tab-score', panel: 'panel-score'},
-        {tab: 'tab-storage', panel: 'panel-storage'}
+        {tab: 'tab-storage', panel: 'panel-storage'},
+        {tab: 'tab-mp', panel: 'panel-mp'}
       ];
       function showPanel(id) {
         for (const t of tabs) {
@@ -125,6 +132,7 @@
 
       // App init
       initUI({ showPanel });
+      initMultiplayer({ showPanel });
       restoreOrInit();
 
       if ('serviceWorker' in navigator) {
@@ -133,4 +141,3 @@
     </script>
   </body>
   </html>
-
