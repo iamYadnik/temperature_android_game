@@ -39,6 +39,7 @@ button[disabled] { opacity: 0.55; }
 .pile { position: relative; width: 100px; height: 140px; border: 2px dashed #1f2937; border-radius: 10px; display:flex; align-items:center; justify-content:center; }
 .pile .card { width: 92px; height: 132px; border-radius: 8px; background:#0f1620; border:1px solid #1f2937; display:flex; align-items:center; justify-content:center; font-weight:600; color: var(--muted); }
 .pile .back { background: linear-gradient(135deg, #0f1620, #1f2937); color:#93c5fd; }
+.card-img { width: 88px; height: 128px; object-fit: contain; display:block; }
 .pile .count { position:absolute; bottom:6px; right:8px; font-size: 0.8rem; color: var(--muted); }
 .turn { font-weight:600; color: var(--accent-2); }
 
@@ -48,13 +49,25 @@ button[disabled] { opacity: 0.55; }
 .player .meta { color: var(--muted); font-size: 0.9rem; }
 
 .hand { display:flex; flex-wrap: wrap; gap:0.5rem; margin-top: 1rem; }
-.card-btn { min-width: 56px; min-height: 56px; padding: 0.5rem; border-radius: 10px; border: 1px solid #334155; background:#0f1620; color:var(--fg); }
+.card-btn { min-width: 64px; min-height: 64px; padding: 0.25rem; border-radius: 10px; border: 1px solid #334155; background:#0f1620; color:var(--fg); display:flex; align-items:center; justify-content:center; }
+.card-btn .card-face { width: 72px; height: 104px; display:flex; align-items:center; justify-content:center; }
+.sr-label { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; clip: rect(0 0 0 0); overflow: hidden; white-space: nowrap; }
 .card-btn.selected { border-color: var(--accent); background: #0b1220; box-shadow: 0 0 0 2px rgba(45,212,191,0.2) inset; }
 .controls { display:flex; gap:0.75rem; margin-top: 0.75rem; }
 
 #toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background:#0f1620; border:1px solid #1f2937; color: var(--fg); padding: 0.6rem 0.8rem; border-radius: 8px; max-width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
 #update-toast { position: fixed; bottom: 16px; right: 16px; }
 #update-toast button { background: #0a1d29; border-color: var(--accent); color: var(--accent); }
+
+/* Multiplayer */
+.mp-root { display: grid; gap: 0.75rem; }
+.mp-menu { display:flex; gap:0.75rem; }
+.mp-card { background:#0f1620; border:1px solid #1f2937; border-radius:10px; padding:0.75rem; }
+.mp-list { display:grid; gap:0.4rem; }
+.mp-row { display:flex; align-items:center; justify-content: space-between; gap:0.5rem; }
+.mp-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 0.9rem; word-break: break-all; }
+.mp-textarea { width: 100%; min-height: 120px; background:#0b1220; color:var(--fg); border:1px solid #334155; border-radius:8px; padding:0.5rem; }
+.mp-actions { display:flex; gap:0.5rem; flex-wrap: wrap; }
 
 @media (hover:hover) {
   .card-btn:hover { border-color: var(--accent-2); }
@@ -64,4 +77,3 @@ button[disabled] { opacity: 0.55; }
   .pile { width: 84px; height: 120px; }
   .pile .card { width: 76px; height: 112px; }
 }
-
