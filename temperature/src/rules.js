@@ -15,19 +15,20 @@ export const RANKS = [
   { label: 'Q', value: 12 },
   { label: 'K', value: 15 }
 ];
+export const SUITS = ['clubs','diamonds','hearts','spades'];
 
 export function buildDeck({ useJokers = false, seed = null } = {}) {
   const deck = [];
   // 4 suits x each rank (suits are ignored)
   for (let s = 0; s < 4; s++) {
     for (const r of RANKS) {
-      deck.push({ id: cryptoRandomId(), label: r.label, value: r.value });
+      deck.push({ id: cryptoRandomId(), label: r.label, value: r.value, suit: SUITS[s] });
     }
   }
   if (useJokers) {
     // Two jokers
-    deck.push({ id: cryptoRandomId(), label: 'Joker', value: 0 });
-    deck.push({ id: cryptoRandomId(), label: 'Joker', value: 0 });
+    deck.push({ id: cryptoRandomId(), label: 'Joker', value: 0, suit: 'red' });
+    deck.push({ id: cryptoRandomId(), label: 'Joker', value: 0, suit: 'black' });
   }
   if (seed != null) shuffle(deck, createPRNG(String(seed)));
   else shuffle(deck);

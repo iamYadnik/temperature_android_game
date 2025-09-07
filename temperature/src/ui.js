@@ -121,7 +121,8 @@ function renderTable(state) {
   el('deck-count').textContent = String(state.deck.length);
   el('discard-count').textContent = String(state.discard.length);
   const top = state.discard[state.discard.length - 1];
-  el('discard-top').textContent = top ? top.label : '—';
+  const discardTop = el('discard-top');
+  renderCardFace(discardTop, top);
   el('turn-banner').textContent = `Current: ${state.players[state.current].name}`;
 
   // Players summary
@@ -146,7 +147,10 @@ function renderTable(state) {
     current.hand.forEach((c, i) => {
       const b = document.createElement('button');
       b.className = 'card-btn' + (sel.has(c.id) ? ' selected' : '');
-      b.textContent = c.label;
+      const face = document.createElement('div'); face.className = 'card-face';
+      renderCardFace(face, c);
+      const text = document.createElement('span'); text.className = 'sr-label'; text.textContent = c.label;
+      b.appendChild(face); b.appendChild(text);
       b.setAttribute('aria-pressed', sel.has(c.id) ? 'true' : 'false');
       b.addEventListener('click', () => toggleCard(c));
       handEl.appendChild(b);
@@ -229,4 +233,25 @@ function renderScore(state) {
   } else {
     btnNext.hidden = true;
   }
+}
+
+function renderCardFace(container, card) {
+  container.innerHTML = '';
+  if (!card) { container.textContent = '—'; return; }
+  const img = document.createElement('img');
+  img.decoding = 'async';
+  img.alt = `${card.label}${card.suit ? ' of ' + card.suit : ''}`;
+  img.className = 'card-img';
+  img.src = cardImagePath(card);
+  img.onerror = () => { container.textContent = card.label; };
+  container.appendChild(img);
+}
+
+function cardImagePath(card) {
+  const base = './assets/img/cards/';
+  if (card.label === 'Joker') {
+    return base + (card.suit === 'red' ? 'joker_red.png' : 'joker_black.png');
+  }
+  const name = `${card.label}_${(card.suit||'spades')}.png`;
+  return base + name.toLowerCase();
 }
